@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>بازی دونفره ❤️</title>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<style>
+:root{--pink:#ff4f9a;--deep:#8e2de2;--bg:#fff5fb;--text:#3c2348;--card:#fff;--muted:#866b91}
+*{box-sizing:border-box}body{margin:0;font-family:Tahoma,Arial,sans-serif;background:radial-gradient(circle at 15% 10%,#ffd5ea 0,transparent 28%),radial-gradient(circle at 90% 20%,#ead7ff 0,transparent 30%),linear-gradient(135deg,#fff7fc,#f8efff);color:var(--text);min-height:100vh;overflow-x:hidden}
+body:before,body:after{content:"❤️";position:fixed;font-size:90px;opacity:.08;z-index:-1}body:before{left:3%;top:12%;transform:rotate(-18deg)}body:after{right:4%;bottom:8%;transform:rotate(20deg)}
+.wrap{max-width:720px;margin:auto;padding:22px 15px 45px}.card{background:rgba(255,255,255,.86);backdrop-filter:blur(12px);border:1px solid #fff;border-radius:28px;padding:25px;box-shadow:0 18px 50px rgba(119,45,130,.13)}
+h1{text-align:center;font-size:31px;margin:8px 0 5px}.sub{text-align:center;color:var(--muted);margin:0 0 22px;line-height:1.8}
+.btn{width:100%;border:0;border-radius:17px;padding:15px 18px;font-size:16px;font-weight:700;cursor:pointer;color:white;background:linear-gradient(135deg,var(--pink),var(--deep));box-shadow:0 8px 20px rgba(142,45,226,.2);margin-top:10px}.btn.secondary{background:#fff;color:var(--deep);border:1px solid #ead8ef;box-shadow:none}.btn:disabled{opacity:.45;cursor:not-allowed}
+input{width:100%;padding:15px;border-radius:15px;border:1px solid #e6d5ea;outline:none;font-size:18px;text-align:center;margin:8px 0}.hidden{display:none!important}.pill{display:inline-block;background:#ffe2f0;color:#c32970;border-radius:99px;padding:7px 13px;font-size:13px;font-weight:bold}
+.roleGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.role{padding:19px 10px;border-radius:20px;border:2px solid #f0dcea;background:#fff;cursor:pointer;text-align:center;font-weight:bold}.role.selected{border-color:var(--pink);background:#fff0f7;transform:translateY(-2px)}
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:16px}.progress{height:9px;background:#f0e5f3;border-radius:99px;overflow:hidden;margin-bottom:20px}.bar{height:100%;background:linear-gradient(90deg,var(--pink),var(--deep));width:0;transition:.3s}
+.question{font-size:21px;line-height:1.8;font-weight:800;margin:8px 0 20px}.options{display:grid;gap:11px}.opt{border:2px solid #eee0f1;background:#fff;border-radius:17px;padding:15px;text-align:right;cursor:pointer;font-size:16px;transition:.15s}.opt:hover{border-color:#edafd0}.opt.sel{border-color:var(--pink);background:#fff0f7}
+.notice{padding:14px 15px;border-radius:17px;background:#fff5d9;color:#765400;margin:14px 0;line-height:1.8}.success{background:#eafff2;color:#14653a}.love{background:linear-gradient(135deg,#fff0f7,#f5edff);padding:24px;border-radius:22px;text-align:center;line-height:2.2;font-size:19px}
+.score{font-size:64px;font-weight:900;text-align:center;background:linear-gradient(135deg,var(--pink),var(--deep));-webkit-background-clip:text;background-clip:text;color:transparent}.center{text-align:center}.small{font-size:13px;color:var(--muted);line-height:1.8}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#faf5fc;border-radius:18px;padding:15px;text-align:center}.stat b{font-size:24px;display:block;margin-top:5px}
+@media(max-width:500px){h1{font-size:26px}.card{padding:19px}.question{font-size:19px}.score{font-size:54px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<section id="home" class="card">
+  <h1>❤️ بازی دونفره ❤️</h1>
+  <p class="sub">ببینیم مهدی‌یار و سدنا واقعاً چقدر همدیگه رو می‌شناسن! 😈😂</p>
+  <div class="roleGrid">
+    <div class="role" data-role="Mahdiyar" onclick="chooseRole('Mahdiyar')">👦<br>من مهدی‌یارم</div>
+    <div class="role" data-role="Sedna" onclick="chooseRole('Sedna')">👧<br>من سدنا هستم</div>
+  </div>
+  <button id="createBtn" class="btn" onclick="createRoom()" disabled>ساخت بازی و لینک دعوت</button>
+  <div id="joinHint" class="notice hidden center">با لینک دعوت وارد شدی! 😎❤️<br><span class="small">فقط نقش خودت رو انتخاب کن تا مستقیم وصل بشی.</span></div>
+  <p class="small center">یک نفر بازی را می‌سازد و لینک دعوت را برای نفر دوم می‌فرستد 🔗❤️</p>
+</section>
+
+<section id="lobby" class="card hidden">
+  <h1>⏳ آماده‌ایم!</h1>
+  <p id="lobbyText" class="sub"></p>
+  <div id="roomCodeBox" class="notice center"></div>
+  <div id="readyArea"></div>
+</section>
+
+<section id="game" class="card hidden">
+  <div class="qhead"><span class="pill" id="phasePill"></span><span id="counter"></span></div>
+  <div class="progress"><div class="bar" id="bar"></div></div>
+  <div class="question" id="question"></div>
+  <div class="options" id="options"></div>
+  <button id="nextBtn" class="btn" onclick="nextAnswer()" disabled>ثبت پاسخ</button>
+  <div id="special" class="notice hidden"></div>
+</section>
+
+<section id="waiting" class="card hidden center">
+  <h1>😈 یه لحظه!</h1>
+  <p class="sub" id="waitingText"></p>
+</section>
+
+<section id="result" class="card hidden">
+  <h1>🏆 نتیجه</h1>
+  <div id="resultBody"></div>
+  <div class="love">مهم نیست چندتا جواب درست شد...<br><b>برنده واقعی این بازی، ما دوتاییم ❤️</b><br>حالا برو یکم بیشتر عاشقش شو 😁❤️</div>
+</section>
+
+</div>
+
+<script>
+const questions=[
+["به نظرت [طرف مقابل] بیشتر از همه چه سبک موسیقی‌ای رو دوست داره؟ 🎵",["پاپ","سنتی","رپ","هرچی باهاش خاطره داشته باشه ❤️"]],
+["به نظرت [طرف مقابل] برای سفر کدوم رو انتخاب می‌کنه؟ ✈️",["دریا 🌊","جنگل 🌲","شهر شلوغ و مدرن 🌆","کوه و طبیعت ⛰️"]],
+["به نظرت غذای موردعلاقه [طرف مقابل] کدومه؟ 🍔",["پیتزا 🍕","کباب 🥩","پاستا 🍝","برگر 🍔"]],
+["به نظرت [طرف مقابل] بیشتر آدم صبحه یا شب؟ 🌙",["صبح زود","ظهر","عصر","شب"]],
+["وقتی [طرف مقابل] ناراحته، بیشتر دوست داره... 🥺",["تنها باشه","با کسی حرف بزنه","یکی بغلش کنه ❤️","خودش رو با چیزی سرگرم کنه"]],
+["به نظرت [طرف مقابل] توی دعوا بیشتر کدومه؟ 😂",["زود کوتاه میاد","قهر می‌کنه","سکوت می‌کنه","اول لج می‌کنه، بعد خودش میاد آشتی 😭😂"]],
+["اگه [طرف مقابل] یه پول خیلی زیاد برنده بشه، اولین کارش چیه؟ 💰",["سفر","خرید","سرمایه‌گذاری","غذا 🍔😂"]],
+["اگه [طرف مقابل] یه روز کامل هیچ مسئولیتی نداشته باشه، چیکار می‌کنه؟ 😎",["می‌خوابه 😴","بیرون میره","فیلم و بازی و سرگرمی","باشگاه میره 💪"]],
+["به نظرت [طرف مقابل] کدوم رو بیشتر دوست داره؟ ❤️",["بغل 🫂","دست گرفتن 🤝","حرف‌های عاشقانه 💌","نگاه‌های طولانی 👀❤️"]],
+["کدوم جمله از طرف مقابل بیشتر می‌تونه دل [طرف مقابل] رو ببره؟ 🥹",["دلم برات تنگ شده","دوستت دارم","بهت افتخار می‌کنم","بیا بغلم 🫠"]],
+["اگه [طرف مقابل] بخواد یک قرار رؤیایی داشته باشه، کدوم رو انتخاب می‌کنه؟ 🌹",["شام رمانتیک","قدم زدن شبانه 🌙","سفر دونفره ✈️","بریم کانون؟ 😂❤️"]],
+["به نظرت کدوم رفتار طرف مقابل بیشتر باعث میشه [طرف مقابل] احساس دوست‌داشتنی بودن کنه؟ ❤️",["توجه به جزئیات","پیام‌های ناگهانی ❤️","بغل کردن","انجام دادن کارهای کوچیک بدون اینکه بخواد"]],
+["اگه [طرف مقابل] فقط یک خاطره از رابطه‌شون رو بتونه برای همیشه نگه داره، احتمالاً کدوم نوع خاطره رو انتخاب می‌کنه؟ 🥹",["اولین دیدار","یه گفت‌وگوی خاص","یه قرار فوق‌العاده","اولین بوسه ❤️"]],
+["بزرگ‌ترین چیزی که [طرف مقابل] از رابطه‌ش می‌خواد چیه؟ ❤️",["آرامش","اعتماد","عشق و توجه","همه؛ احساس امنیت 🫂❤️"]],
+["به نظرت [طرف مقابل] بیشتر با کدوم چیز عاشق میشه؟ ❤️",["ظاهر 👀","رفتار","توجه و محبت","حس امنیتی که طرف مقابل بهش میده"]],
+["به نظرت [طرف مقابل] وقتی دلش برای اون یکی خیلی تنگ میشه، کدوم کار رو زودتر انجام میده؟ 🥹",["پیام میده","زنگ می‌زنه","میگه «دلم برات تنگ شده»","بهانه‌ای پیدا می‌کنه تا باهاش صحبت کنه ❤️"]],
+["کدوم حالِ [طرف مقابل] برای [طرف مقابل] سخت‌تره؟ 🥺",["وقتی ناراحته","وقتی عصبانیه","وقتی ازش دلخوره","وقتی ازش فاصله گرفته و نمی‌دونه چطور آرومش کنه ❤️"]],
+["اگه [طرف مقابل] بخواد با یه حرکت کوچیک طرف مقابل رو حسابی ذوق‌زده کنه، کدوم رو انتخاب می‌کنه؟ 😈❤️",["یه بغل ناگهانی 🫂","یه پیام غیرمنتظره 💌","یه نگاه خاص 👀","یه بوسه تو ماشین 😏❤️"]],
+["به نظرت کدوم موقعیت بیشتر باعث میشه [طرف مقابل] نتونه جلوی لبخندش رو بگیره؟ 😁❤️",["تعریف ناگهانی","نگاه عاشقانه","شنیدن اسمش با لحن خاص ❤️","یه حرکت شیطنت‌آمیز از طرف مقابل 😈😂"]],
+["اگه [طرف مقابل] مجبور باشه یکی رو انتخاب کنه، کدوم براش مهم‌تره؟ ❤️",["عشق","اعتماد","احترام","آرامش"]],
+["به نظرت [طرف مقابل] بیشتر از چه چیزی توی رابطه ناراحت میشه؟ 🥺",["بی‌توجهی","دروغ","سوءتفاهم","بی‌خبر موندن از کسی که دوستش داره ❤️"]],
+["اگه [طرف مقابل] بتونه ذهن اون یکی رو فقط برای ۳۰ ثانیه بخونه، اولین چیزی که می‌خواد بفهمه چیه؟ 👀😈",["الان به من فکر می‌کنه؟","واقعاً چقدر دوستم داره؟","الان چه فکری درباره منه؟","یه راز کوچیک که نباید بدونم؟ 😈😂"]]
+];
+
+let role=null, peer=null, conn=null, isHost=false, hostId="", phase="", idx=0, answers=[], guesses=[], selected=null, otherName="", remoteState={};
+
+function chooseRole(r){
+ role=r; otherName=r==="Mahdiyar"?"سدنا":"مهدی‌یار";
+ document.querySelectorAll(".role").forEach(x=>x.classList.toggle("selected",x.dataset.role===r));
+ document.getElementById("createBtn").disabled=false;
+ const params=new URLSearchParams(location.search);
+ if(params.get("join")){
+   document.getElementById("createBtn").textContent="ورود به بازی ❤️";
+   document.getElementById("createBtn").onclick=joinRoom;
+ }else{
+   document.getElementById("createBtn").textContent="ساخت بازی و لینک دعوت";
+   document.getElementById("createBtn").onclick=createRoom;
+ }
+}
+function show(id){document.querySelectorAll("section").forEach(s=>s.classList.add("hidden"));document.getElementById(id).classList.remove("hidden")}
+function inviteLink(){
+ return location.origin + location.pathname + "?room=" + encodeURIComponent(roomId);
+}
+function createRoom(){
+ if(!role)return;
+ isHost=true;
+ peer=new Peer();
+ peer.on("open",id=>{
+   hostId=id;
+   const link=inviteLink();
+   show("lobby");
+   document.getElementById("roomCodeBox").innerHTML=
+     "<b style='font-size:22px'>لینک دعوت آماده‌ست 🔗❤️</b><br>"+
+     "<input id='inviteLink' readonly value='"+link+"' style='font-size:13px;margin-top:12px'>"+
+     "<button class='btn' onclick='shareInvite()'>📤 فرستادن لینک برای "+otherName+"</button>"+
+     "<button class='btn secondary' onclick='copyInvite()'>📋 کپی لینک</button>";
+   document.getElementById("lobbyText").textContent="منتظر ورود "+otherName+" هستیم...";
+   document.getElementById("readyArea").innerHTML="<button class='btn' onclick='setReady()'>من آماده‌ام ✅</button>";
+ });
+ peer.on("connection",c=>setupConnection(c));
+ peer.on("error",e=>alert("اتصال بازی برقرار نشد. دوباره یک بازی بساز."));
+}
+function joinRoom(){
+ if(!role){alert("اول مشخص کن مهدی‌یار هستی یا سدنا 😁");return}
+ const params=new URLSearchParams(location.search);
+ hostId=params.get("join")||"";
+ if(!hostId){alert("لینک دعوت معتبر نیست یا بازی بسته شده است.");return}
+ isHost=false;
+ peer=new Peer();
+ peer.on("open",()=>{
+   conn=peer.connect(hostId,{reliable:true});
+   setupConnection(conn);
+ });
+ peer.on("error",()=>alert("این بازی پیدا نشد یا سازنده بازی خارج شده است."));
+}
+function inviteLink(){
+ return location.origin + location.pathname + "?join=" + encodeURIComponent(hostId);
+}
+function shareInvite(){
+ const link=inviteLink();
+ if(navigator.share){
+   navigator.share({title:"❤️ بازی دونفره",text:"بیا ببینیم چقدر همدیگه رو می‌شناسیم 😈❤️",url:link}).catch(()=>{});
+ }else copyInvite();
+}
+function copyInvite(){
+ const link=inviteLink();
+ navigator.clipboard?.writeText(link).then(()=>alert("لینک بازی کپی شد ❤️")).catch(()=>{
+   const el=document.getElementById("inviteLink"); el.select(); document.execCommand("copy"); alert("لینک بازی کپی شد ❤️");
+ });
+}
+function autoJoinFromLink(){
+ const params=new URLSearchParams(location.search);
+ if(params.has("join")){
+   document.getElementById("joinHint").classList.remove("hidden");
+   document.getElementById("createBtn").textContent="ساخت بازی جدید";
+   document.getElementById("createBtn").onclick=()=>{history.replaceState({},"",location.pathname);document.getElementById("joinHint").classList.add("hidden");createRoom()};
+ }
+}
+function setupConnection(c){
+ conn=c;
+ c.on("open",()=>{
+   show("lobby");
+   document.getElementById("roomCodeBox").innerHTML=isHost?"اتصال برقرار شد! 🎉":"اتصال به بازی برقرار شد! 🎉";
+   document.getElementById("lobbyText").textContent=isHost?"نفر مقابل وارد بازی شد ❤️":"به بازی مهدی‌یار و سدنا خوش اومدی ❤️";
+   document.getElementById("readyArea").innerHTML="<button class='btn' onclick='setReady()'>من آماده‌ام ✅</button>";
+   send({type:"hello",role});
+ });
+ c.on("data",handle);
+ c.on("close",()=>alert("ارتباط با نفر مقابل قطع شد."));
+}
+function send(o){if(conn && conn.open)conn.send(o)}
+function setReady(){
+ if(remoteState.ready){
+   startOwn();
+   return;
+ }
+ send({type:"ready"});
+ document.getElementById("readyArea").innerHTML="<div class='notice success'>آماده شدی ❤️ منتظر نفر مقابل...</div>";
+}
+function startOwn(){if(isHost)send({type:"start"});phase="answer";idx=0;answers=[];guesses=[];selected=null;remoteState.answered=false;remoteState.answers=null;render()}
+function render(){
+ show("game");let q=questions[idx][0].replaceAll("[طرف مقابل]",otherName);document.getElementById("question").textContent=q;
+ document.getElementById("counter").textContent=(idx+1)+" / "+questions.length;
+ document.getElementById("bar").style.width=((idx+1)/questions.length*100)+"%";
+ document.getElementById("phasePill").textContent=phase==="answer"?"مرحله پاسخ دادن":"مرحله حدس زدن";
+ document.getElementById("options").innerHTML=questions[idx][1].map((x,i)=>`<div class="opt" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}) ${x}</div>`).join("");
+ document.getElementById("nextBtn").disabled=true;selected=null;document.getElementById("special").classList.add("hidden");
+}
+function selectOpt(i){selected=i;document.querySelectorAll(".opt").forEach((e,n)=>e.classList.toggle("sel",n===i));document.getElementById("nextBtn").disabled=false}
+function nextAnswer(){
+ if(selected===null)return;
+ if(phase==="answer")answers[idx]=selected;else guesses[idx]=selected;
+ if(phase==="guess" && role==="Sedna" && idx===13){document.getElementById("special").classList.remove("hidden");document.getElementById("special").innerHTML="مهدی‌یار بهت قول میده همه‌ی گزینه‌ها رو با هم داشته باشی😉😁❤️"}
+ idx++;
+ if(idx<questions.length){setTimeout(render,phase==="guess"&&role==="Sedna"&&idx===14?1200:0);return}
+ show("waiting");document.getElementById("waitingText").textContent=phase==="answer"?"پاسخ‌هات ثبت شد و قفل شد 🔒 منتظر نفر مقابل...":"حدس‌هات ثبت شد! 🔥 منتظر تکمیل بازی...";
+ if(phase==="answer"){send({type:"answerDone"});send({type:"remoteAnswers",answers});maybeStartGuess()}
+ else {send({type:"guessDone"});send({type:"remoteGuesses",guesses});maybeFinish()}
+}
+function maybeStartGuess(){
+ if((remoteState.answered&&answers.length===questions.length)||phase==="answer"&&answers.length===questions.length){
+   if(!remoteState.answers)return;
+ }
+ if(answers.length===questions.length && remoteState.answers){
+   phase="guess";idx=0;guesses=[];render();
+ }
+}
+function maybeFinish(){
+ if(guesses.length===questions.length && remoteState.guesses){
+   const myScore=scoreAgainst(guesses,remoteState.answers), otherScore=scoreAgainst(remoteState.guesses,answers);
+   showResult(myScore,otherScore);
+ }
+}
+function scoreAgainst(g,a){let correct=0;for(let i=0;i<questions.length;i++)if(g[i]===a[i])correct++;return {correct,points:correct*10,grade:Math.max(1,Math.round(correct/questions.length*100))}}
+function showResult(me,other){
+ const title=role==="Mahdiyar"?"مهدی‌یار":"سدنا", rival=otherName;
+ let msg=me.grade>=90?"تو رسماً ذهنشو می‌خونی! 🧠🔥":me.grade>=70?"خیلی خوب می‌شناسین همدیگه رو 😍":me.grade>=50?"بد نیست! یه کوچولو دیگه باید همدیگه رو کشف کنید 😁":"😂 خب... انگار باید چندتا قرار دیگه برید!";
+ document.getElementById("resultBody").innerHTML=`<p class="center"><b>${title}</b>، نمره شناختت از ${rival}:</p><div class="score">${me.grade}</div><p class="center">از ۱۰۰ ❤️</p><div class="grid2"><div class="stat">جواب درست<b>${me.correct}</b></div><div class="stat">امتیاز پایه<b>${me.points}</b></div></div><p class="notice center">${msg}</p><p class="small center">نمره بر اساس تعداد حدس‌های درست محاسبه شده؛ Comboها برای جذابیت نمایش داده می‌شوند.</p>`;
+ show("result");
+}
+autoJoinFromLink();
+</script>
+</body>
+</html>
